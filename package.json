@@ -1,0 +1,19 @@
+{
+  "name": "pickle-rick-skills",
+  "version": "0.1.0",
+  "description": "CLI-agnostic autonomous engineering lifecycle — agentskills.io standard",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test scripts/tests/*.test.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "@types/node": "^22.0.0"
+  },
+  "private": true
+}
