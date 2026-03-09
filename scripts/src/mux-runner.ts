@@ -364,8 +364,13 @@ async function main(): Promise<void> {
 
     if (exitResult.type === 'error') {
       log('Subprocess error. Exiting.');
-      state.active = false;
-      writeStateFile(statePath, state);
+      try {
+        const errState = readStateFile(statePath);
+        errState.active = false;
+        writeStateFile(statePath, errState);
+      } catch {
+        try { writeStateFile(statePath, { ...state, active: false }); } catch { /* nothing we can do */ }
+      }
       exitReason = 'error';
       break;
     }
@@ -432,7 +437,10 @@ async function main(): Promise<void> {
         timestamp: new Date().toISOString(),
       });
       writeStateFile(statePath, updatedState);
-    } catch { /* state update failed — continue */ }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log(`WARN: state update failed: ${msg} — continuing`);
+    }
 
     // Write handoff for next iteration
     try {
