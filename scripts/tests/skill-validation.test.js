@@ -434,3 +434,49 @@ describe('council-of-ricks SKILL.md validation', () => {
     assert.ok(templateContent.includes('Fix') || templateContent.includes('fix'), 'template must contain fix instructions');
   });
 });
+
+// --- pickle-jar SKILL.md validation ---
+
+const jarDir = path.join(repoRoot, '.agents', 'skills', 'pickle-jar');
+const jarSkillPath = path.join(jarDir, 'SKILL.md');
+
+describe('pickle-jar SKILL.md validation', () => {
+  const content = fs.readFileSync(jarSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'pickle-jar');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('triggers include jar and batch', () => {
+    assert.ok(frontmatter.triggers.includes('jar'), 'triggers must include jar');
+    assert.ok(frontmatter.triggers.includes('batch'), 'triggers must include batch');
+  });
+
+  it('SKILL.md body references jar-runner.js and add-to-pickle-jar.js', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('jar-runner.js'), 'body must reference jar-runner.js');
+    assert.ok(body.includes('add-to-pickle-jar.js'), 'body must reference add-to-pickle-jar.js');
+  });
+
+  it('SKILL.md documents SHA-256 integrity', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('SHA-256'), 'body must document SHA-256 integrity');
+  });
+
+  it('SKILL.md documents manager_max_turns (50)', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('manager_max_turns'), 'body must reference manager_max_turns');
+    assert.ok(body.includes('50'), 'body must specify 50');
+  });
+
+  it('SKILL.md documents JARRED completion promise', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('JARRED'), 'body must document JARRED promise');
+  });
+});
