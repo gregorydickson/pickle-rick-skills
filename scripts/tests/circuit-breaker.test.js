@@ -384,6 +384,31 @@ describe('recordIteration — opens after threshold', () => {
     assert.notEqual(result.state, 'OPEN');
     fs.rmSync(freshDir, { recursive: true });
   });
+
+  it('opens after same-error threshold (3 consecutive same errors)', () => {
+    const freshDir = makeTmpDir();
+    const head = getHead(gitDir);
+    const initial = makeFreshCBState({ last_known_head: head, last_known_step: 'implement', last_known_ticket: 'ticket-1' });
+    saveCBState(freshDir, initial);
+
+    let result;
+    for (let i = 1; i <= 3; i++) {
+      const state = makeState({
+        working_dir: gitDir,
+        step: 'implement',
+        current_ticket: 'ticket-1',
+        iteration: i,
+        session_dir: freshDir,
+      });
+      result = recordIteration(freshDir, state, 'TypeError: cannot read property foo of undefined');
+    }
+
+    assert.equal(result.state, 'OPEN');
+    assert.equal(result.consecutive_same_error, 3);
+    // Opened via same-error path, NOT the no-progress path (which requires 5)
+    assert.ok(result.consecutive_no_progress < 5, 'must not have hit no-progress threshold');
+    fs.rmSync(freshDir, { recursive: true });
+  });
 });
 
 // ---------------------------------------------------------------------------

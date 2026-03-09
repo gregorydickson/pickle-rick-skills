@@ -282,6 +282,22 @@ describe('transitionToMeeseeks', () => {
     assert.equal(result.working_dir, '/foo/bar');
     assert.equal(result.active, true);
   });
+
+  it('sets min_iterations from config defaults (meeseeks_min_passes)', () => {
+    const state = makeState({});
+    const result = transitionToMeeseeks(state);
+    // Default meeseeks_min_passes is 10
+    assert.equal(typeof result.min_iterations, 'number');
+    assert.ok(result.min_iterations > 0, 'min_iterations must be positive');
+  });
+
+  it('sets max_iterations from config defaults (meeseeks_max_passes)', () => {
+    const state = makeState({});
+    const result = transitionToMeeseeks(state);
+    // Default meeseeks_max_passes is 50
+    assert.equal(typeof result.max_iterations, 'number');
+    assert.ok(result.max_iterations > result.min_iterations, 'max_iterations must exceed min_iterations');
+  });
 });
 
 // ---------------------------------------------------------------------------
