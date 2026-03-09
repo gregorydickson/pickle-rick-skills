@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { readActivityLogs } from './services/activity-logger.js';
 import type { ActivityEvent } from './types/index.js';
 
@@ -84,11 +84,13 @@ export function parseArgs(argv: string[]): ParsedArgs {
 export function getGitCommits(since: Date): Map<string, string> {
   const commits = new Map<string, string>();
   try {
-    const output = execSync(`git log --after="${since.toISOString()}" --oneline`, {
+    const result = spawnSync('git', ['log', `--after=${since.toISOString()}`, '--oneline'], {
       encoding: 'utf-8',
       timeout: 10000,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+    if (result.status !== 0) return commits;
+    const output = result.stdout as string;
     for (const line of output.split('\n')) {
       const trimmed = line.trim();
       if (!trimmed) continue;

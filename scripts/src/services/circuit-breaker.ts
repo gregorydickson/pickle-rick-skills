@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import type { State } from '../types/index.js';
 
 // ---------------------------------------------------------------------------
@@ -109,16 +109,13 @@ function readJsonSafe<T>(filePath: string, fallback: T): T {
 }
 
 function gitExec(args: string[], cwd: string): string {
-  try {
-    return execSync(['git', ...args].join(' '), {
-      cwd,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 5000,
-    }).trim();
-  } catch {
-    return '';
-  }
+  const result = spawnSync('git', args, {
+    cwd,
+    encoding: 'utf-8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: 5000,
+  });
+  return result.status === 0 ? (result.stdout as string).trim() : '';
 }
 
 // ---------------------------------------------------------------------------
