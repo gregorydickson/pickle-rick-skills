@@ -158,6 +158,7 @@ export interface SpawnManagerArgs {
   maxTurns: number;
   model?: string;
   env?: Record<string, string>;
+  onPid?: (pid: number) => void;
 }
 
 export interface SpawnWorkerArgs {

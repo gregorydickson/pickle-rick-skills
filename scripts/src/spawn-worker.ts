@@ -57,10 +57,11 @@ interface InternalSpawnOpts {
   logFile: string;
   timeout: number;
   graceSeconds: number;
+  onPid?: (pid: number) => void;
 }
 
 function spawnProcess(opts: InternalSpawnOpts): Promise<SpawnResult> {
-  const { cmd, cwd, env, logFile, timeout, graceSeconds } = opts;
+  const { cmd, cwd, env, logFile, timeout, graceSeconds, onPid } = opts;
 
   // Ensure log directory exists
   const logDir = path.dirname(logFile);
@@ -78,6 +79,10 @@ function spawnProcess(opts: InternalSpawnOpts): Promise<SpawnResult> {
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+
+    if (proc.pid !== undefined) {
+      onPid?.(proc.pid);
+    }
 
     const settle = (result: SpawnResult) => {
       if (settled) return;
@@ -190,6 +195,7 @@ export async function spawnManager(args: SpawnManagerArgs): Promise<SpawnResult>
     logFile: args.logFile,
     timeout: args.timeout,
     graceSeconds: config.defaults.sigkill_grace_seconds,
+    onPid: args.onPid,
   });
 }
 

@@ -172,9 +172,14 @@ async function main(): Promise<void> {
 
   log('mux-runner started');
 
+  let activeWorkerPid: number | undefined;
+
   // Graceful shutdown
   const handleShutdown = (signal: string) => {
     log(`Received ${signal} — deactivating session`);
+    if (activeWorkerPid !== undefined) {
+      try { process.kill(activeWorkerPid, 'SIGTERM'); } catch { /* already gone */ }
+    }
     try {
       const state = readStateFile(statePath);
       state.active = false;
@@ -293,8 +298,11 @@ async function main(): Promise<void> {
         extensionRoot: process.env['EXTENSION_DIR'] || sessionDir,
         maxTurns: config.defaults.tmux_max_turns,
         model: templateName === 'meeseeks.md' ? config.defaults.meeseeks_model : undefined,
+        onPid: (pid) => { activeWorkerPid = pid; },
       });
+      activeWorkerPid = undefined;
     } catch (err) {
+      activeWorkerPid = undefined;
       const msg = err instanceof Error ? err.message : String(err);
       log(`Spawn error: ${msg}. Exiting.`);
       state.active = false;
