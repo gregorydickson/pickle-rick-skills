@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import { spawnSync } from 'child_process';
 import type { State } from '../types/index.js';
+import { getExtensionRoot } from './config.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -223,7 +224,7 @@ export function recordIteration(
   state: State,
   error?: string,
 ): CircuitBreakerState {
-  const configPath = path.join(sessionDir, '..', 'config.json');
+  const configPath = path.join(getExtensionRoot(), 'config.json');
   const rawConfig = readJsonSafe<Record<string, unknown>>(configPath, {});
   const config: CircuitBreakerConfig = { ...DEFAULT_CONFIG };
 
