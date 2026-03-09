@@ -175,6 +175,7 @@ export const DEFAULT_CONFIG_DEFAULTS: PickleRickSkillsConfig['defaults'] = {
   cb_half_open_after: 3,
   cb_error_threshold: 3,
   chain_meeseeks: false,
+  activity_logging: true,
 };
 
 // ---------------------------------------------------------------------------

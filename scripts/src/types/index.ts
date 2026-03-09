@@ -139,6 +139,7 @@ export interface PickleRickSkillsConfig {
     cb_half_open_after: number;
     cb_error_threshold: number;
     chain_meeseeks: boolean;
+    activity_logging: boolean;
   };
 }
 
@@ -196,4 +197,39 @@ export interface WorkerContext {
   sessionDir: string;
   workingDir: string;
   ticketId: string;
+}
+
+// ---------------------------------------------------------------------------
+// Activity Events
+// ---------------------------------------------------------------------------
+
+export const VALID_ACTIVITY_EVENTS = [
+  'session_start', 'session_end', 'ticket_completed', 'epic_completed',
+  'meeseeks_pass', 'commit', 'research', 'bug_fix', 'feature',
+  'refactor', 'review', 'jar_start', 'jar_end',
+  'circuit_open', 'circuit_recovery',
+  'iteration_start', 'iteration_end',
+  'rate_limit_wait', 'rate_limit_resume', 'rate_limit_exhausted',
+] as const;
+
+export type ActivityEventType = typeof VALID_ACTIVITY_EVENTS[number];
+
+export interface ActivityEvent {
+  ts: string;
+  event: ActivityEventType;
+  source: 'pickle' | 'hook' | 'persona';
+  session?: string;
+  epic?: string;
+  ticket?: string;
+  title?: string;
+  step?: string;
+  mode?: string;
+  pass?: number;
+  commit_hash?: string;
+  commit_message?: string;
+  duration_min?: number;
+  error?: string;
+  iteration?: number;
+  exit_type?: IterationExitType;
+  original_prompt?: string;
 }

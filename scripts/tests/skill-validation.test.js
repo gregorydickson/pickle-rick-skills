@@ -480,3 +480,111 @@ describe('pickle-jar SKILL.md validation', () => {
     assert.ok(body.includes('JARRED'), 'body must document JARRED promise');
   });
 });
+
+// --- pickle-metrics SKILL.md validation ---
+
+const metricsDir = path.join(repoRoot, '.agents', 'skills', 'pickle-metrics');
+const metricsSkillPath = path.join(metricsDir, 'SKILL.md');
+
+describe('pickle-metrics SKILL.md validation', () => {
+  const content = fs.readFileSync(metricsSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'pickle-metrics');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('triggers include metrics', () => {
+    assert.ok(frontmatter.triggers.includes('metrics'), 'triggers must include metrics');
+  });
+
+  it('SKILL.md body references metrics.js', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('metrics.js'), 'body must reference metrics.js');
+  });
+
+  it('SKILL.md body documents --days and --json flags', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('--days'), 'body must document --days flag');
+    assert.ok(body.includes('--json'), 'body must document --json flag');
+  });
+});
+
+// --- pickle-standup SKILL.md validation ---
+
+const standupDir = path.join(repoRoot, '.agents', 'skills', 'pickle-standup');
+const standupSkillPath = path.join(standupDir, 'SKILL.md');
+
+describe('pickle-standup SKILL.md validation', () => {
+  const content = fs.readFileSync(standupSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'pickle-standup');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('triggers include standup', () => {
+    assert.ok(frontmatter.triggers.includes('standup'), 'triggers must include standup');
+  });
+
+  it('SKILL.md body references standup.js', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('standup.js'), 'body must reference standup.js');
+  });
+
+  it('SKILL.md body documents --since flag', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('--since'), 'body must document --since flag');
+  });
+});
+
+// --- project-mayhem SKILL.md validation ---
+
+const mayhemDir = path.join(repoRoot, '.agents', 'skills', 'project-mayhem');
+const mayhemSkillPath = path.join(mayhemDir, 'SKILL.md');
+
+describe('project-mayhem SKILL.md validation', () => {
+  const content = fs.readFileSync(mayhemSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'project-mayhem');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('triggers include chaos and mutation', () => {
+    assert.ok(frontmatter.triggers.includes('chaos'), 'triggers must include chaos');
+    assert.ok(frontmatter.triggers.includes('mutation'), 'triggers must include mutation');
+  });
+
+  it('SKILL.md body documents git checkout revert', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('git checkout'), 'body must document git checkout for reverting');
+  });
+
+  it('SKILL.md body documents mutation testing, dependency downgrades, config corruption', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '').toLowerCase();
+    assert.ok(body.includes('mutation'), 'body must mention mutation testing');
+    assert.ok(body.includes('dependency'), 'body must mention dependency downgrades');
+    assert.ok(body.includes('config'), 'body must mention config corruption');
+  });
+
+  it('SKILL.md body documents report generation', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('report') || body.includes('Report'), 'body must document report generation');
+  });
+});
