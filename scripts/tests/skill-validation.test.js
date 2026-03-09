@@ -122,3 +122,191 @@ describe('pickle-rick SKILL.md validation', () => {
     assert.equal(personaRef.conditional, 'true', 'persona.md must be marked conditional');
   });
 });
+
+// --- Meeseeks SKILL.md validation ---
+
+const meeseeksDir = path.join(repoRoot, '.agents', 'skills', 'meeseeks');
+const meeseeksSkillPath = path.join(meeseeksDir, 'SKILL.md');
+
+describe('meeseeks SKILL.md validation', () => {
+  const content = fs.readFileSync(meeseeksSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'meeseeks');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('all files listed in references array exist', () => {
+    assert.ok(Array.isArray(frontmatter.references), 'references must be array');
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const fullPath = path.join(meeseeksDir, refPath);
+      assert.ok(fs.existsSync(fullPath), `reference file missing: ${refPath}`);
+    }
+  });
+
+  it('SKILL.md + all references < 8000 tokens', () => {
+    let totalWords = content.split(/\s+/).length;
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const refContent = fs.readFileSync(path.join(meeseeksDir, refPath), 'utf-8');
+      totalWords += refContent.split(/\s+/).length;
+    }
+    const estimatedTokens = Math.ceil(totalWords * 1.3);
+    assert.ok(estimatedTokens < 8000, `token estimate ${estimatedTokens} exceeds 8000`);
+  });
+
+  it('focus-areas.md has 8 categories', () => {
+    const focusPath = path.join(meeseeksDir, 'references', 'focus-areas.md');
+    const focusContent = fs.readFileSync(focusPath, 'utf-8');
+    const headings = focusContent.match(/^## \d+\. .+$/gm);
+    assert.ok(headings, 'must have numbered H2 headings');
+    assert.equal(headings.length, 8, `expected 8 focus areas, got ${headings.length}`);
+  });
+
+  it('all 8 named focus area categories present', () => {
+    const focusPath = path.join(meeseeksDir, 'references', 'focus-areas.md');
+    const focusContent = fs.readFileSync(focusPath, 'utf-8').toLowerCase();
+    const expected = [
+      'dependency health',
+      'security',
+      'correctness',
+      'architecture',
+      'test coverage',
+      'resilience',
+      'code quality',
+      'polish',
+    ];
+    for (const name of expected) {
+      assert.ok(focusContent.includes(name), `missing focus area: ${name}`);
+    }
+  });
+
+  it('send-to-morty-review.md contains EXISTENCE_IS_PAIN token', () => {
+    const reviewPath = path.join(meeseeksDir, 'references', 'send-to-morty-review.md');
+    const reviewContent = fs.readFileSync(reviewPath, 'utf-8');
+    assert.ok(reviewContent.includes('EXISTENCE_IS_PAIN'), 'must contain EXISTENCE_IS_PAIN token');
+  });
+
+  it('SKILL.md body references setup.js and mux-runner.js', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('setup.js'), 'body must reference setup.js');
+    assert.ok(body.includes('mux-runner.js'), 'body must reference mux-runner.js');
+  });
+});
+
+// --- pickle-prd SKILL.md validation ---
+
+const prdDir = path.join(repoRoot, '.agents', 'skills', 'pickle-prd');
+const prdSkillPath = path.join(prdDir, 'SKILL.md');
+
+describe('pickle-prd SKILL.md validation', () => {
+  const content = fs.readFileSync(prdSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'pickle-prd');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('triggers include prd', () => {
+    assert.ok(frontmatter.triggers.includes('prd'), 'triggers must include prd');
+  });
+
+  it('all files listed in references array exist', () => {
+    assert.ok(Array.isArray(frontmatter.references), 'references must be array');
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const fullPath = path.join(prdDir, refPath);
+      assert.ok(fs.existsSync(fullPath), `reference file missing: ${refPath}`);
+    }
+  });
+
+  it('SKILL.md + all references < 8000 tokens', () => {
+    let totalWords = content.split(/\s+/).length;
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const refContent = fs.readFileSync(path.join(prdDir, refPath), 'utf-8');
+      totalWords += refContent.split(/\s+/).length;
+    }
+    const estimatedTokens = Math.ceil(totalWords * 1.3);
+    assert.ok(estimatedTokens < 8000, `token estimate ${estimatedTokens} exceeds 8000`);
+  });
+
+  it('SKILL.md body contains prd.md reference', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('prd.md'), 'body must reference prd.md output');
+  });
+});
+
+// --- pickle-refine-prd SKILL.md validation ---
+
+const refinePrdDir = path.join(repoRoot, '.agents', 'skills', 'pickle-refine-prd');
+const refinePrdSkillPath = path.join(refinePrdDir, 'SKILL.md');
+
+describe('pickle-refine-prd SKILL.md validation', () => {
+  const content = fs.readFileSync(refinePrdSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'pickle-refine-prd');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('triggers include refine-prd', () => {
+    assert.ok(frontmatter.triggers.includes('refine-prd'), 'triggers must include refine-prd');
+  });
+
+  it('all files listed in references array exist', () => {
+    assert.ok(Array.isArray(frontmatter.references), 'references must be array');
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const fullPath = path.join(refinePrdDir, refPath);
+      assert.ok(fs.existsSync(fullPath), `reference file missing: ${refPath}`);
+    }
+  });
+
+  it('SKILL.md + all references < 8000 tokens', () => {
+    let totalWords = content.split(/\s+/).length;
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const refContent = fs.readFileSync(path.join(refinePrdDir, refPath), 'utf-8');
+      totalWords += refContent.split(/\s+/).length;
+    }
+    const estimatedTokens = Math.ceil(totalWords * 1.3);
+    assert.ok(estimatedTokens < 8000, `token estimate ${estimatedTokens} exceeds 8000`);
+  });
+
+  it('refinement-roles.md has all 3 role descriptions', () => {
+    const rolesPath = path.join(refinePrdDir, 'references', 'refinement-roles.md');
+    const rolesContent = fs.readFileSync(rolesPath, 'utf-8');
+    assert.ok(rolesContent.includes('Requirements Analyst'), 'missing Requirements Analyst');
+    assert.ok(rolesContent.includes('Codebase Context Analyst'), 'missing Codebase Context Analyst');
+    assert.ok(rolesContent.includes('Risk & Scope Auditor'), 'missing Risk & Scope Auditor');
+  });
+
+  it('refinement-roles.md documents cross-reference protocol', () => {
+    const rolesPath = path.join(refinePrdDir, 'references', 'refinement-roles.md');
+    const rolesContent = fs.readFileSync(rolesPath, 'utf-8');
+    assert.ok(rolesContent.includes('(YOUR OWN — improve on this)'), 'missing cross-ref marking');
+    assert.ok(rolesContent.includes('Cross-Reference Protocol'), 'missing cross-ref protocol section');
+  });
+
+  it('SKILL.md body references spawn-refinement-team.js', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('spawn-refinement-team.js'), 'body must reference spawn-refinement-team.js');
+  });
+});
