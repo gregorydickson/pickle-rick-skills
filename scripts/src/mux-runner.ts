@@ -12,6 +12,7 @@ import { PromiseTokens, hasToken } from './types/index.js';
 import { spawnManager } from './spawn-worker.js';
 import { loadConfig } from './services/config.js';
 import { isDegenerate, extractTail } from './services/degenerate-detector.js';
+import { detectRateLimitJSON, detectRateLimitText } from './services/rate-limit.js';
 export { isDegenerate } from './services/degenerate-detector.js';
 
 // ---------------------------------------------------------------------------
@@ -51,14 +52,6 @@ function sleep(ms: number): Promise<void> {
 // Token Classification
 // ---------------------------------------------------------------------------
 
-const RATE_LIMIT_TEXT_PATTERNS = [
-  /5.*hour.*limit/i,
-  /limit.*reached.*try.*back/i,
-  /usage.*limit.*reached/i,
-  /rate limit/i,
-  /out of (extra )?usage/i,
-];
-
 /**
  * Classifies iteration output into a completion result.
  * Checks tokens in priority order per PRD table.
@@ -92,11 +85,11 @@ export function classifyIterationExit(
   const combined = stdout + '\n' + stderr;
 
   // Rate limit detection (runs BEFORE error classification)
-  const rateLimitInfo = detectRateLimit(combined);
-  if (rateLimitInfo.limited) {
+  const rateLimitInfo = detectRateLimitJSON(combined);
+  if (rateLimitInfo) {
     return { type: 'api_limit', rateLimitInfo };
   }
-  if (RATE_LIMIT_TEXT_PATTERNS.some(p => p.test(combined))) {
+  if (detectRateLimitText(combined)) {
     return { type: 'api_limit' };
   }
 
@@ -113,26 +106,6 @@ export function classifyIterationExit(
   return { type: 'success' };
 }
 
-function detectRateLimit(text: string): RateLimitInfo {
-  const result: RateLimitInfo = { limited: false };
-  const lines = text.split('\n');
-  for (const line of lines) {
-    try {
-      const parsed = JSON.parse(line);
-      if (parsed.type !== 'rate_limit_event') continue;
-      const info = parsed.rate_limit_info ?? parsed;
-      if (info.status === 'rejected') {
-        result.limited = true;
-        if (typeof info.resetsAt === 'number') result.resetsAt = info.resetsAt;
-        if (typeof info.rateLimitType === 'string') result.rateLimitType = info.rateLimitType;
-      }
-    } catch {
-      // Not JSON — skip
-    }
-  }
-  return result;
-}
-
 /**
  * Validates command template name — rejects path traversal.
  */
@@ -144,7 +117,7 @@ export function validateCommandTemplate(template: string): void {
 
 /**
  * Transitions session from ticket-execution to Meeseeks review mode.
- * Pure function — returns new state.
+ * Reads config from disk; returns new state object.
  */
 export function transitionToMeeseeks(state: State): State {
   const config = loadConfig();

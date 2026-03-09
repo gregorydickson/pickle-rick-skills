@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import { spawnSync } from 'child_process';
 import type { State } from '../types/index.js';
-import { getExtensionRoot } from './config.js';
+import { loadConfig } from './config.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -224,14 +224,13 @@ export function recordIteration(
   state: State,
   error?: string,
 ): CircuitBreakerState {
-  const configPath = path.join(getExtensionRoot(), 'config.json');
-  const rawConfig = readJsonSafe<Record<string, unknown>>(configPath, {});
-  const config: CircuitBreakerConfig = { ...DEFAULT_CONFIG };
-
-  if (typeof rawConfig.cb_enabled === 'boolean') config.enabled = rawConfig.cb_enabled;
-  if (typeof rawConfig.cb_no_progress_threshold === 'number') config.noProgressThreshold = rawConfig.cb_no_progress_threshold;
-  if (typeof rawConfig.cb_same_error_threshold === 'number') config.sameErrorThreshold = rawConfig.cb_same_error_threshold;
-  if (typeof rawConfig.cb_half_open_after === 'number') config.halfOpenAfter = rawConfig.cb_half_open_after;
+  const userConfig = loadConfig();
+  const config: CircuitBreakerConfig = {
+    enabled: userConfig.defaults.cb_enabled,
+    noProgressThreshold: userConfig.defaults.cb_no_progress_threshold,
+    sameErrorThreshold: userConfig.defaults.cb_error_threshold,
+    halfOpenAfter: userConfig.defaults.cb_half_open_after,
+  };
 
   if (!config.enabled) {
     return loadCBState(sessionDir);
@@ -280,6 +279,9 @@ export function recordIteration(
     cbState.last_progress_iteration = state.iteration;
     if (cbState.state === 'HALF_OPEN') {
       transition(cbState, 'CLOSED', 'Progress detected');
+      // Recovery wins — skip open-threshold checks this iteration
+      saveCBState(sessionDir, cbState);
+      return cbState;
     }
   } else {
     cbState.consecutive_no_progress++;
