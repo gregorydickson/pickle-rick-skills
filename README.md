@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/pickle-rick.png" alt="Pickle Rick Skills" width="600" />
+  <img src="images/pickle-rick.png" alt="Pickle Rick Skills" width="100%" />
 </p>
 
 # 🥒 Pickle Rick Skills — CLI-Agnostic Autonomous Engineering
