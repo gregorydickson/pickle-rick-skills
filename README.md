@@ -28,7 +28,7 @@ This is a **port** of [pickle-rick-claude](https://github.com/gregorydickson/pic
 ## 🧬 The Pickle Rick Lifecycle — PRD-Driven Autonomous Engineering
 
 <p align="center">
-  <img src="images/rick-roadmap.png" alt="Pickle Rick Lifecycle Roadmap" width="100%" />
+  <img src="images/prd-rick.png" alt="Writing PRDs for Pickle Rick" width="100%" />
 </p>
 
 Pickle Rick transforms any CLI coding agent into a **hyper-competent, iterative coding machine** that enforces a PRD-driven engineering lifecycle:
