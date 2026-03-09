@@ -9,7 +9,7 @@ import crypto from 'crypto';
 const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'jar-utils-test-'));
 process.env.EXTENSION_DIR = tmpRoot;
 
-const { validatePrdPath, addToJar, readJarQueue, writeJarQueue, verifyIntegrity, computeSha256 } =
+const { validatePrdPath, addToJar, readJarQueue, writeJarQueue, verifyIntegrity, computeSha256, updateTaskStatus } =
   await import('../bin/services/jar-utils.js');
 
 describe('validatePrdPath', () => {
@@ -112,6 +112,64 @@ describe('queue operations', () => {
     writeJarQueue(queue);
     const read = readJarQueue();
     assert.deepEqual(read, queue);
+  });
+});
+
+describe('updateTaskStatus', () => {
+  let tmpDir;
+  let origDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jar-update-'));
+    origDir = process.env.EXTENSION_DIR;
+    process.env.EXTENSION_DIR = tmpDir;
+    writeJarQueue({
+      tasks: [{
+        id: 'task-abc',
+        prd_path: '/tmp/prd.md',
+        task: 'Test task',
+        sha256: 'abc',
+        status: 'queued',
+        queued_at: '2026-01-01T00:00:00.000Z',
+      }],
+    });
+  });
+
+  afterEach(() => {
+    process.env.EXTENSION_DIR = origDir;
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('updates task status by id', () => {
+    updateTaskStatus('task-abc', 'running');
+    const queue = readJarQueue();
+    const task = queue.tasks.find(t => t.id === 'task-abc');
+    assert.equal(task.status, 'running');
+  });
+
+  it('applies optional field updates', () => {
+    const startedAt = '2026-03-09T10:00:00.000Z';
+    updateTaskStatus('task-abc', 'running', { started_at: startedAt, session_dir: '/tmp/session' });
+    const queue = readJarQueue();
+    const task = queue.tasks.find(t => t.id === 'task-abc');
+    assert.equal(task.started_at, startedAt);
+    assert.equal(task.session_dir, '/tmp/session');
+  });
+
+  it('silently ignores unknown task id', () => {
+    assert.doesNotThrow(() => updateTaskStatus('nonexistent-id', 'completed'));
+    const queue = readJarQueue();
+    assert.equal(queue.tasks.length, 1);
+    assert.equal(queue.tasks[0].status, 'queued');
+  });
+
+  it('transitions queued → completed with timestamp', () => {
+    const completedAt = new Date().toISOString();
+    updateTaskStatus('task-abc', 'completed', { completed_at: completedAt });
+    const queue = readJarQueue();
+    const task = queue.tasks.find(t => t.id === 'task-abc');
+    assert.equal(task.status, 'completed');
+    assert.equal(task.completed_at, completedAt);
   });
 });
 

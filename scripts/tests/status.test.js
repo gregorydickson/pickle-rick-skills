@@ -109,6 +109,17 @@ describe('status', () => {
     const output = await showStatus('/nonexistent/no/session');
     assert.ok(output.includes('No active session'), 'should indicate no session');
   });
+
+  it('returns message for unreadable state.json', async () => {
+    const sessionDir = path.join(tmpRoot, 'sessions', 'status-corrupt');
+    const cwd = '/test/status/corrupt';
+    fs.mkdirSync(sessionDir, { recursive: true });
+    fs.writeFileSync(path.join(sessionDir, 'state.json'), '{ invalid json !!!');
+    await updateSessionMap(cwd, sessionDir);
+
+    const output = await showStatus(cwd);
+    assert.ok(output.includes('unreadable'), 'should indicate state is unreadable');
+  });
 });
 
 describe('circuit-reset', () => {
