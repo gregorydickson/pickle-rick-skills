@@ -310,3 +310,127 @@ describe('pickle-refine-prd SKILL.md validation', () => {
     assert.ok(body.includes('spawn-refinement-team.js'), 'body must reference spawn-refinement-team.js');
   });
 });
+
+// --- Portal-Gun SKILL.md validation ---
+
+const portalGunDir = path.join(repoRoot, '.agents', 'skills', 'portal-gun');
+const portalGunSkillPath = path.join(portalGunDir, 'SKILL.md');
+
+describe('portal-gun SKILL.md validation', () => {
+  const content = fs.readFileSync(portalGunSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'portal-gun');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('all files listed in references array exist', () => {
+    assert.ok(Array.isArray(frontmatter.references), 'references must be array');
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const fullPath = path.join(portalGunDir, refPath);
+      assert.ok(fs.existsSync(fullPath), `reference file missing: ${refPath}`);
+    }
+  });
+
+  it('pattern-analysis-template.md exists', () => {
+    const templatePath = path.join(portalGunDir, 'references', 'pattern-analysis-template.md');
+    assert.ok(fs.existsSync(templatePath), 'pattern-analysis-template.md must exist');
+  });
+
+  it('target-analysis-template.md exists', () => {
+    const templatePath = path.join(portalGunDir, 'references', 'target-analysis-template.md');
+    assert.ok(fs.existsSync(templatePath), 'target-analysis-template.md must exist');
+  });
+
+  it('SKILL.md + all references < 8000 tokens', () => {
+    let totalWords = content.split(/\s+/).length;
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const refContent = fs.readFileSync(path.join(portalGunDir, refPath), 'utf-8');
+      totalWords += refContent.split(/\s+/).length;
+    }
+    const estimatedTokens = Math.ceil(totalWords * 1.3);
+    assert.ok(estimatedTokens < 8000, `token estimate ${estimatedTokens} exceeds 8000`);
+  });
+
+  it('SKILL.md body references setup.js and mux-runner.js', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('setup.js'), 'body must reference setup.js');
+    assert.ok(body.includes('mux-runner.js'), 'body must reference mux-runner.js');
+  });
+
+  it('SKILL.md documents pattern extraction not code copying', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('PATTERN'), 'body must mention PATTERN extraction');
+    assert.ok(body.includes('never copies implementation code') || body.includes('not code'), 'body must clarify no code copying');
+  });
+});
+
+// --- Council-of-Ricks SKILL.md validation ---
+
+const councilDir = path.join(repoRoot, '.agents', 'skills', 'council-of-ricks');
+const councilSkillPath = path.join(councilDir, 'SKILL.md');
+
+describe('council-of-ricks SKILL.md validation', () => {
+  const content = fs.readFileSync(councilSkillPath, 'utf-8');
+  const frontmatter = parseFrontmatter(content);
+
+  it('YAML frontmatter has required fields', () => {
+    assert.ok(frontmatter, 'frontmatter must parse');
+    assert.equal(frontmatter.name, 'council-of-ricks');
+    assert.ok(frontmatter.description, 'description required');
+    assert.ok(frontmatter.version, 'version required');
+    assert.ok(Array.isArray(frontmatter.triggers), 'triggers must be array');
+    assert.ok(frontmatter.triggers.length > 0, 'triggers must not be empty');
+  });
+
+  it('all files listed in references array exist', () => {
+    assert.ok(Array.isArray(frontmatter.references), 'references must be array');
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const fullPath = path.join(councilDir, refPath);
+      assert.ok(fs.existsSync(fullPath), `reference file missing: ${refPath}`);
+    }
+  });
+
+  it('directive-template.md exists', () => {
+    const templatePath = path.join(councilDir, 'references', 'directive-template.md');
+    assert.ok(fs.existsSync(templatePath), 'directive-template.md must exist');
+  });
+
+  it('SKILL.md + all references < 8000 tokens', () => {
+    let totalWords = content.split(/\s+/).length;
+    for (const ref of frontmatter.references) {
+      const refPath = typeof ref === 'string' ? ref : ref.path;
+      const refContent = fs.readFileSync(path.join(councilDir, refPath), 'utf-8');
+      totalWords += refContent.split(/\s+/).length;
+    }
+    const estimatedTokens = Math.ceil(totalWords * 1.3);
+    assert.ok(estimatedTokens < 8000, `token estimate ${estimatedTokens} exceeds 8000`);
+  });
+
+  it('SKILL.md body contains THE_CITADEL_APPROVES', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('THE_CITADEL_APPROVES'), 'body must contain THE_CITADEL_APPROVES promise token');
+  });
+
+  it('SKILL.md body references setup.js and mux-runner.js', () => {
+    const body = content.replace(/^---[\s\S]*?---/, '');
+    assert.ok(body.includes('setup.js'), 'body must reference setup.js');
+    assert.ok(body.includes('mux-runner.js'), 'body must reference mux-runner.js');
+  });
+
+  it('directive-template.md has per-branch structure', () => {
+    const templatePath = path.join(councilDir, 'references', 'directive-template.md');
+    const templateContent = fs.readFileSync(templatePath, 'utf-8');
+    assert.ok(templateContent.includes('Branch'), 'template must contain Branch heading');
+    assert.ok(templateContent.includes('Findings') || templateContent.includes('Finding'), 'template must contain findings section');
+    assert.ok(templateContent.includes('Fix') || templateContent.includes('fix'), 'template must contain fix instructions');
+  });
+});
