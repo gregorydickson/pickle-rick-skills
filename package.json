@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --test scripts/tests/*.test.js"
+    "test": "node --test scripts/tests/*.test.js tests/integration/*.test.js"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

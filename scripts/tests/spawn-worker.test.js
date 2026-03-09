@@ -474,9 +474,9 @@ describe('loadConfig', () => {
     }
   });
 
-  it('has exactly 20 default keys', () => {
+  it('has exactly 21 default keys', () => {
     const config = makeConfig();
     const keys = Object.keys(config.defaults);
-    assert.equal(keys.length, 20, `Expected 20 defaults, got ${keys.length}: ${keys.join(', ')}`);
+    assert.equal(keys.length, 21, `Expected 21 defaults, got ${keys.length}: ${keys.join(', ')}`);
   });
 });
