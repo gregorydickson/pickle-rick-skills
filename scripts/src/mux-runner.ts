@@ -6,6 +6,7 @@ import type {
   SessionExitReason,
   IterationExitResult,
   RateLimitInfo,
+  RateLimitAction,
   SpawnResult,
 } from './types/index.js';
 import { PromiseTokens, hasToken } from './types/index.js';
@@ -104,6 +105,45 @@ export function classifyIterationExit(
   }
 
   return { type: 'success' };
+}
+
+/**
+ * Computes rate limit wait action based on exit result and retry count.
+ * Prefers API-provided resetsAt over config default wait time.
+ */
+export function computeRateLimitAction(
+  exitResult: IterationExitResult,
+  consecutiveRateLimits: number,
+  maxRetries: number,
+  configWaitMinutes: number,
+): RateLimitAction {
+  const configWaitMs = configWaitMinutes * 60 * 1000;
+  const maxApiWaitMs = configWaitMs * 3;
+  let waitMs = configWaitMs;
+  let waitSource: 'api' | 'config' = 'config';
+  const rlResetsAt = exitResult.rateLimitInfo?.resetsAt;
+  const hasResetsAt = typeof rlResetsAt === 'number' && rlResetsAt > 0;
+
+  if (hasResetsAt) {
+    const apiWaitMs = (rlResetsAt * 1000) - Date.now();
+    if (apiWaitMs > 0 && apiWaitMs <= maxApiWaitMs) {
+      waitMs = apiWaitMs + 30_000; // 30s buffer
+      waitSource = 'api';
+    }
+  }
+
+  // Bail only when blind (no resetsAt) AND retries exhausted
+  if (!hasResetsAt && consecutiveRateLimits >= maxRetries) {
+    return { action: 'bail', waitMs: 0, waitSource: 'config', resetCounter: false, hasResetsAt };
+  }
+
+  return {
+    action: 'wait',
+    waitMs,
+    waitSource,
+    resetCounter: waitSource === 'api',
+    hasResetsAt,
+  };
 }
 
 /**

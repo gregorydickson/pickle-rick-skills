@@ -79,6 +79,14 @@ export interface IterationExitResult {
   rateLimitInfo?: RateLimitInfo;
 }
 
+export interface RateLimitAction {
+  action: 'wait' | 'bail';
+  waitMs: number;
+  waitSource: 'api' | 'config';
+  resetCounter: boolean;
+  hasResetsAt: boolean;
+}
+
 export interface RateLimitWaitInfo {
   waiting: boolean;
   reason: string;
@@ -233,4 +241,44 @@ export interface ActivityEvent {
   iteration?: number;
   exit_type?: IterationExitType;
   original_prompt?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Microverse Types
+// ---------------------------------------------------------------------------
+
+export interface MicroverseMetric {
+  description: string;
+  validation: string;
+  type: 'command' | 'llm';
+  timeout_seconds: number;
+  tolerance: number;
+  direction?: 'higher' | 'lower';
+  judge_model?: string;
+}
+
+export interface MicroverseHistoryEntry {
+  iteration: number;
+  metric_value: string;
+  score: number;
+  action: 'accept' | 'revert';
+  description: string;
+  pre_iteration_sha: string;
+  timestamp: string;
+}
+
+export interface MicroverseSessionState {
+  status: 'gap_analysis' | 'iterating' | 'converged' | 'stopped';
+  prd_path: string;
+  key_metric: MicroverseMetric;
+  convergence: {
+    stall_limit: number;
+    stall_counter: number;
+    history: MicroverseHistoryEntry[];
+  };
+  gap_analysis_path: string;
+  failed_approaches: string[];
+  baseline_score: number;
+  exit_reason?: string;
+  stash_ref?: string;
 }
