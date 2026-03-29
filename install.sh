@@ -19,7 +19,7 @@ echo "Installing pickle-rick-skills..."
 node --version >/dev/null 2>&1 || { echo "ERROR: node not found on PATH"; exit 1; }
 
 SKILL_DIRS=(
-  council-of-ricks meeseeks pickle-jar pickle-metrics pickle-prd
+  council-of-ricks meeseeks microverse pickle-jar pickle-metrics pickle-prd
   pickle-refine-prd pickle-rick pickle-standup portal-gun project-mayhem
 )
 
