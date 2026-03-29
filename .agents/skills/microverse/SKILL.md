@@ -26,7 +26,7 @@ Extract from `$ARGUMENTS`:
 | `--metric "<cmd>"` | — | Yes (XOR --goal) | Shell command whose last stdout line is a numeric score. Sets type='command'. |
 | `--goal "<text>"` | — | Yes (XOR --metric) | Natural language goal for LLM judge. Sets type='llm'. |
 | `--direction <higher\|lower>` | `higher` | No | Optimization direction — whether higher or lower scores are better |
-| `--judge-model <model>` | `claude-sonnet-4-6` | No | Judge model for LLM scoring (only valid with --goal) |
+| `--judge-model <model>` | `sonnet` | No | Judge model for LLM scoring (only valid with --goal) |
 | `--task "<text>"` | — | Yes | What to optimize (becomes the PRD objective) |
 | `--tolerance <N>` | `0` | No | Score delta within which changes count as "held" |
 | `--stall-limit <N>` | `5` | No | Non-improving iterations before convergence |
@@ -71,7 +71,7 @@ const keyMetric = {
   tolerance: Number(process.argv[4]),
   direction: direction
 };
-if (type === 'llm') keyMetric.judge_model = process.argv[8] || 'claude-sonnet-4-6';
+if (type === 'llm') keyMetric.judge_model = process.argv[8] || 'sonnet';
 const state = {
   status: 'gap_analysis',
   prd_path: path.join(sessionDir, 'prd.md'),
@@ -94,7 +94,7 @@ Replace placeholders with parsed values:
 - `<VALIDATION>` = metric command (if `--metric`) or goal text (if `--goal`)
 - `<TYPE>` = `command` (if `--metric`) or `llm` (if `--goal`)
 - `<DIRECTION>` = from `--direction` flag (default `higher`)
-- `<JUDGE_MODEL>` = from `--judge-model` flag (default `claude-sonnet-4-6`, only used when type=`llm`)
+- `<JUDGE_MODEL>` = from `--judge-model` flag (default `sonnet`, only used when type=`llm`)
 
 Verify: `node -e "const s=JSON.parse(require('fs').readFileSync('${SESSION_ROOT}/microverse.json','utf-8')); console.log('status:', s.status, 'metric:', s.key_metric.validation, 'stall_limit:', s.convergence.stall_limit)"`
 
