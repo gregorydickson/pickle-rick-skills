@@ -1,3 +1,14 @@
+---
+name: microverse
+description: Microverse convergence loop — optimize a metric through targeted, incremental changes.
+version: 1.0.0
+triggers:
+  - microverse
+  - convergence
+  - optimize
+  - metric
+---
+
 Start the pickle-rick-skills microverse convergence loop — optimize a metric through targeted, incremental changes.
 
 # /microverse
